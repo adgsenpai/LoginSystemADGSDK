@@ -15,7 +15,7 @@
     };
 
     if (document.getElementsByClassName('navbar-collapse')[0]) {
-      var fixedplugin = document.querySelector('.navbar-collapse');
+      var fixedplugin = document.querySelector('.navbar:not(.navbar-expand-lg) .navbar-collapse');
       var ps2 = new PerfectScrollbar(fixedplugin);
     };
 
@@ -29,12 +29,41 @@
 // Verify navbar blur on scroll
 navbarBlurOnScroll('navbarBlur');
 
-
 // initialization of Tooltips
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
 var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
   return new bootstrap.Tooltip(tooltipTriggerEl)
 })
+
+// when input is focused add focused class for style
+function focused(el) {
+  if (el.parentElement.classList.contains('input-group')) {
+    el.parentElement.classList.add('focused');
+  }
+}
+
+// when input is focused remove focused class for style
+function defocused(el) {
+  if (el.parentElement.classList.contains('input-group')) {
+    el.parentElement.classList.remove('focused');
+  }
+}
+
+// helper for adding on all elements multiple attributes
+function setAttributes(el, options) {
+  Object.keys(options).forEach(function(attr) {
+    el.setAttribute(attr, options[attr]);
+  })
+}
+
+// adding on inputs attributes for calling the focused and defocused functions
+if (document.querySelectorAll('.input-group').length != 0) {
+  var allInputs = document.querySelectorAll('input.form-control');
+  allInputs.forEach(el => setAttributes(el, {
+    "onfocus": "focused(this)",
+    "onfocusout": "defocused(this)"
+  }));
+}
 
 // Fixed Plugin
 
@@ -220,15 +249,17 @@ function sidebarColor(a) {
   var sidebar = document.querySelector('.sidenav');
   sidebar.setAttribute("data-color", color);
 
-  var sidenavCard = document.querySelector('#sidenavCard');
-  let sidenavCardClasses = ['card', 'card-background', 'shadow-none', 'card-background-mask-' + color];
-  sidenavCard.className = '';
-  sidenavCard.classList.add(...sidenavCardClasses);
+  if (document.querySelector('#sidenavCard')) {
+    var sidenavCard = document.querySelector('#sidenavCard');
+    let sidenavCardClasses = ['card', 'card-background', 'shadow-none', 'card-background-mask-' + color];
+    sidenavCard.className = '';
+    sidenavCard.classList.add(...sidenavCardClasses);
 
-  var sidenavCardIcon = document.querySelector('#sidenavCardIcon');
-  let sidenavCardIconClasses = ['ni', 'ni-diamond', 'text-gradient', 'text-lg', 'top-0', 'text-' + color];
-  sidenavCardIcon.className = '';
-  sidenavCardIcon.classList.add(...sidenavCardIconClasses);
+    var sidenavCardIcon = document.querySelector('#sidenavCardIcon');
+    let sidenavCardIconClasses = ['ni', 'ni-diamond', 'text-gradient', 'text-lg', 'top-0', 'text-' + color];
+    sidenavCardIcon.className = '';
+    sidenavCardIcon.classList.add(...sidenavCardIconClasses);
+  }
 
 }
 
@@ -251,6 +282,7 @@ function navbarFixed(el) {
 };
 
 // Navbar blur on scroll
+
 function navbarBlurOnScroll(id) {
   const navbar = document.getElementById(id);
   let navbarScrollActive = navbar ? navbar.getAttribute("navbar-scroll") : false;
@@ -280,10 +312,12 @@ function navbarBlurOnScroll(id) {
   }
 
   function transparentNavbar() {
-    navbar.classList.remove(...classes)
-    navbar.classList.add(...toggleClasses)
+    if (navbar) {
+      navbar.classList.remove(...classes)
+      navbar.classList.add(...toggleClasses)
 
-    toggleNavLinksColor('transparent');
+      toggleNavLinksColor('transparent');
+    }
   }
 
   function toggleNavLinksColor(type) {
@@ -309,6 +343,7 @@ function navbarBlurOnScroll(id) {
     }
   }
 }
+
 
 // Debounce Function
 // Returns a function, that, as long as it continues to be invoked, will not
@@ -336,8 +371,11 @@ function sidebarType(a) {
   var parent = a.parentElement.children;
   var color = a.getAttribute("data-class");
 
+  var colors = [];
+
   for (var i = 0; i < parent.length; i++) {
     parent[i].classList.remove('active');
+    colors.push(parent[i].getAttribute('data-class'));
   }
 
   if (!a.classList.contains('active')) {
@@ -347,8 +385,10 @@ function sidebarType(a) {
   }
 
   var sidebar = document.querySelector('.sidenav');
-  sidebar.classList.remove('bg-transparent');
-  sidebar.classList.remove('bg-white');
+
+  for (var i = 0; i < colors.length; i++) {
+    sidebar.classList.remove(colors[i]);
+  }
 
   sidebar.classList.add(color);
 }
